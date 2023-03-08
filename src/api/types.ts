@@ -1,11 +1,22 @@
+export type rootKeyType = '';
+export type jsonKeyType = 'json';
+
+export const rootKey = '';
+export const jsonKey = 'json';
+
+// 'root' & 'json' 을 구분해주기 위함
 export type OpenApiType = {
-  root: Record<string, string>;
-  json: Record<string, string>;
+  [root in rootKeyType]: Record<string, string>;
+} & {
+  [json in jsonKeyType]: Record<string, string>;
 };
 
 export type OpenApiKeyType = keyof OpenApiType;
 export type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
 
+// open api response type
+// 1. root -> return number
+// 2. json -> return JsonDataType
 export type RootDataType = number;
 
 export type RecordType = {
@@ -25,6 +36,7 @@ export type JsonDataType = {
   retrievedTotal?: number;
 };
 
+// getOpenApiInfoType 에서 사용하는 type
 export type OpenApiInfoType = {
   url: string;
   name: string;
@@ -34,5 +46,5 @@ export type OpenApiInfoType = {
 export type OpenApiResponseType<T extends OpenApiKeyType> = {
   key: keyof OpenApiType[T];
   name: string;
-  data: T extends RootDataType ? RootDataType : JsonDataType;
+  data: T extends rootKeyType ? RootDataType : JsonDataType;
 };

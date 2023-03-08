@@ -1,19 +1,28 @@
 import { getPath } from '../utils';
-import { OpenApiInfoType, OpenApiKeyType, OpenApiResponseType, OpenApiSubKeyType, OpenApiType } from './types';
+import {
+  OpenApiInfoType,
+  OpenApiKeyType,
+  OpenApiResponseType,
+  OpenApiSubKeyType,
+  OpenApiType,
+  jsonKey,
+  rootKey,
+} from './types';
 
-// .env
+// .env -> 에 넣어서 다시 리팩토링할 예정
 const DEMO_PROJECT_API_TOCKEN = 'XGJHUSQZTI2AVIENWA27HI5V';
 const DEMO_PROJECT_CODE = '5490';
 const OPEN_API_ROOT = 'https://api.whatap.io/open/api';
 
-// api header
+// api header -> using .env vals
 const OPEN_API_HEADERS = {
   'x-whatap-pcode': DEMO_PROJECT_CODE,
   'x-whatap-token': DEMO_PROJECT_API_TOCKEN,
 };
 
+// open-api categorys
 const OPEN_API: OpenApiType = {
-  root: {
+  '': {
     act_agent: '활성화 상태의 에이전트 수',
     inact_agent: '비활성화 상태의 에이전트 수',
     host: '호스트 수',
@@ -40,6 +49,7 @@ const OPEN_API: OpenApiType = {
   },
 };
 
+// url, name 을 반환해주는 함수 -> 콜스택에 최대한 안쌓이게 하기 위해서 async 로 처리함
 async function getOpenApiInfo<T extends OpenApiKeyType>(type: T, key: OpenApiSubKeyType<T>): Promise<OpenApiInfoType> {
   if (key in OPEN_API[type]) {
     return {
@@ -58,18 +68,17 @@ async function fetchOpenApi<T extends OpenApiKeyType>(
 ): Promise<OpenApiResponseType<T>> {
   try {
     const { url, name }: OpenApiInfoType = await getOpenApiInfo(type, key);
+    console.log('url', url);
     const data = await fetch(getPath(url, param), { headers: OPEN_API_HEADERS })
       .then((res) => res.json())
       .then((data) => ({ key, name, data }));
+    console.log('data', data);
     return data;
   } catch (error) {
     console.error(error);
     throw new Error('Failed to fetch data from the Open API');
   }
 }
-
-const rootKey: OpenApiKeyType = 'root';
-const jsonKey: OpenApiKeyType = 'json';
 
 const spot = (key: OpenApiSubKeyType<typeof rootKey>, param?: Record<string, any>) => fetchOpenApi(rootKey, key, param);
 const series = (key: OpenApiSubKeyType<typeof jsonKey>, param?: Record<string, any>) =>
