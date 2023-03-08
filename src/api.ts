@@ -7,8 +7,16 @@ const OPEN_API_HEADERS = {
 
 const OPEN_API_ROOT = "https://api.whatap.io/open/api";
 
-const OPEN_API = {
-  "": {
+type OPEN_API_TYPE = {
+  root: Record<string, string>;
+  json: Record<string, string>;
+};
+
+const rootKey: OpenApiKeyType = "root";
+const jsonKey: OpenApiKeyType = "json";
+
+const OPEN_API: OPEN_API_TYPE = {
+  root: {
     act_agent: "활성화 상태의 에이전트 수",
     inact_agent: "비활성화 상태의 에이전트 수",
     host: "호스트 수",
@@ -35,78 +43,88 @@ const OPEN_API = {
   },
 };
 
-type OPEN_API_T = typeof OPEN_API;
-type OPEN_API_TYPE = keyof typeof OPEN_API;
-type OPEN_API_KEY_TYPE = keyof (typeof OPEN_API)[OPEN_API_TYPE];
+type OpenApiType = typeof OPEN_API;
+type OpenApiKeyType = keyof OpenApiType;
+type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
 
 const getPath = (url: string, param: Record<string, any> = {}): string => {
   let path = url;
   for (let key in param) {
     path = path.replace(new RegExp("\\{" + key + "\\}", "g"), param[key]);
   }
-  console.log("path", path);
 
   return path;
 };
 
-interface ResponseType {
+type OpenApiInfoType = {
   url: string;
   name: string;
+};
+
+async function getOpenApiInfo<T extends OpenApiKeyType>(
+  type: T,
+  key: OpenApiSubKeyType<T>
+): Promise<OpenApiInfoType> {
+  if (key in OPEN_API[type]) {
+    return {
+      url: [OPEN_API_ROOT, type, key].filter((path) => !!path).join("/"),
+      name: OPEN_API[type][key],
+    };
+  } else {
+    throw Error("Invalid type");
+  }
 }
 
-function getOpenApi(type: OPEN_API_TYPE) {
-  return function (key: keyof OPEN_API_T[typeof type], param?: Object) {
-    return new Promise<ResponseType>((resolve, reject) => {
-      if (key in OPEN_API[type]) {
-        const data: ResponseType = {
-          url: [OPEN_API_ROOT, type, key].filter((path) => !!path).join("/"),
-          name: OPEN_API[type][key],
-        };
-        return resolve(data);
-      } else {
-        reject("잘못된 API 정보");
-      }
-    }).then(({ url, name }: ResponseType) => {
-      fetch(getPath(url, param), {
-        headers: OPEN_API_HEADERS,
-      })
-        .then((response) => response.json())
-        .then((data) => ({
-          key,
-          name,
-          data,
-        }))
-        .catch((e) => console.error("getOpenApi", e));
-    });
-  };
+type RootDataType = number;
+
+type RecordType = {
+  oids: string;
+  time: number;
+  classHash: number;
+  count: number;
+  service: string;
+  class: string;
+  serviceHash: number;
+  snapSeq: string;
+  msg: string;
+};
+type JsonDataType = {
+  records: RecordType[];
+  total: number;
+  retrievedTotal?: number;
+};
+
+// fetch 해서 받아온 데이터의 타입을 정의
+type ResponseType<T extends OpenApiKeyType> = {
+  key: keyof OPEN_API_TYPE[T];
+  name: string;
+  data: T extends RootDataType ? RootDataType : JsonDataType;
+};
+
+async function fetchOpenApi<T extends OpenApiKeyType>(
+  type: T,
+  key: OpenApiSubKeyType<T>,
+  param?: Record<string, any>
+): Promise<ResponseType<T>> {
+  try {
+    const { url, name }: OpenApiInfoType = await getOpenApiInfo(type, key);
+    const data = await fetch(getPath(url, param), { headers: OPEN_API_HEADERS })
+      .then((res) => res.json())
+      .then((data) => ({ key, name, data }));
+    return data;
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to fetch data from the Open API");
+  }
 }
 
-// const getOpenApi =
-//   (type: OPEN_API_TYPE) => (key: , param?: Object) =>
-//     new Promise<ResponseType>((resolve, reject) => {
-//       if (key in OPEN_API[type]) {
-//         const data: ResponseType = {
-//           url: [OPEN_API_ROOT, type, key].filter((path) => !!path).join("/"),
-//           name: OPEN_API[type][key],
-//         };
-//         return resolve(data);
-//       } else {
-//         reject("잘못된 API 정보");
-//       }
-//     }).then(({ url, name }: ResponseType) => {
-//       fetch(getPath(url, param), {
-//         headers: OPEN_API_HEADERS,
-//       })
-//         .then((response) => response.json())
-//         .then((data) => ({
-//           key,
-//           name,
-//           data,
-//         }))
-//         .catch((e) => console.error("getOpenApi", e));
-//     });
-
-const spot = getOpenApi("");
-const series = getOpenApi("json");
+const spot = (
+  key: OpenApiSubKeyType<typeof rootKey>,
+  param?: Record<string, any>
+) => fetchOpenApi(rootKey, key, param);
+const series = (
+  key: OpenApiSubKeyType<typeof jsonKey>,
+  param?: Record<string, any>
+) => fetchOpenApi(jsonKey, key, param);
 
 export default { spot, series };
