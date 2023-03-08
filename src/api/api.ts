@@ -10,14 +10,11 @@ import {
 } from './types';
 
 // .env -> 에 넣어서 다시 리팩토링할 예정
-const DEMO_PROJECT_API_TOCKEN = 'XGJHUSQZTI2AVIENWA27HI5V';
-const DEMO_PROJECT_CODE = '5490';
-const OPEN_API_ROOT = 'https://api.whatap.io/open/api';
 
 // api header -> using .env vals
 const OPEN_API_HEADERS = {
-  'x-whatap-pcode': DEMO_PROJECT_CODE,
-  'x-whatap-token': DEMO_PROJECT_API_TOCKEN,
+  'x-whatap-pcode': import.meta.env.VITE_DEMO_PROJECT_CODE,
+  'x-whatap-token': import.meta.env.VITE_DEMO_PROJECT_API_TOCKEN,
 };
 
 // open-api categorys
@@ -52,10 +49,11 @@ const OPEN_API: OpenApiType = {
 // url, name 을 반환해주는 함수 -> 콜스택에 최대한 안쌓이게 하기 위해서 async 로 처리함
 async function getOpenApiInfo<T extends OpenApiKeyType>(type: T, key: OpenApiSubKeyType<T>): Promise<OpenApiInfoType> {
   if (key in OPEN_API[type]) {
-    return {
-      url: [OPEN_API_ROOT, type, key].filter((path) => !!path).join('/'),
+    const data = {
+      url: [import.meta.env.VITE_OPEN_API_ROOT, type, key].filter((path) => !!path).join('/'),
       name: OPEN_API[type][key],
     };
+    return data;
   } else {
     throw Error('Invalid type');
   }
@@ -68,11 +66,10 @@ async function fetchOpenApi<T extends OpenApiKeyType>(
 ): Promise<OpenApiResponseType<T>> {
   try {
     const { url, name }: OpenApiInfoType = await getOpenApiInfo(type, key);
-    console.log('url', url);
     const data = await fetch(getPath(url, param), { headers: OPEN_API_HEADERS })
       .then((res) => res.json())
       .then((data) => ({ key, name, data }));
-    console.log('data', data);
+
     return data;
   } catch (error) {
     console.error(error);
