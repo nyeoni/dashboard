@@ -1,14 +1,14 @@
-type OpenApiType = {
+export type OpenApiType = {
   root: Record<string, string>;
   json: Record<string, string>;
 };
 
-type OpenApiKeyType = keyof OpenApiType;
-type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
+export type OpenApiKeyType = keyof OpenApiType;
+export type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
 
-type RootDataType = number;
+export type RootDataType = number;
 
-type RecordType = {
+export type RecordType = {
   oids: string;
   time: number;
   classHash: number;
@@ -19,19 +19,19 @@ type RecordType = {
   snapSeq: string;
   msg: string;
 };
-type JsonDataType = {
+export type JsonDataType = {
   records: RecordType[];
   total: number;
   retrievedTotal?: number;
 };
 
-type OpenApiInfoType = {
+export type OpenApiInfoType = {
   url: string;
   name: string;
 };
 
 // fetch 해서 받아온 데이터의 타입을 정의
-type OpenApiResponseType<T extends OpenApiKeyType> = {
+export type OpenApiResponseType<T extends OpenApiKeyType> = {
   key: keyof OpenApiType[T];
   name: string;
   data: T extends RootDataType ? RootDataType : JsonDataType;
