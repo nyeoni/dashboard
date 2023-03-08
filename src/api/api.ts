@@ -1,21 +1,17 @@
+import { getPath } from "../utils";
+
+// .env
 const DEMO_PROJECT_API_TOCKEN = "XGJHUSQZTI2AVIENWA27HI5V";
 const DEMO_PROJECT_CODE = "5490";
+const OPEN_API_ROOT = "https://api.whatap.io/open/api";
+
+// api header
 const OPEN_API_HEADERS = {
   "x-whatap-pcode": DEMO_PROJECT_CODE,
   "x-whatap-token": DEMO_PROJECT_API_TOCKEN,
 };
 
-const OPEN_API_ROOT = "https://api.whatap.io/open/api";
-
-type OPEN_API_TYPE = {
-  root: Record<string, string>;
-  json: Record<string, string>;
-};
-
-const rootKey: OpenApiKeyType = "root";
-const jsonKey: OpenApiKeyType = "json";
-
-const OPEN_API: OPEN_API_TYPE = {
+const OPEN_API: OpenApiType = {
   root: {
     act_agent: "활성화 상태의 에이전트 수",
     inact_agent: "비활성화 상태의 에이전트 수",
@@ -43,24 +39,6 @@ const OPEN_API: OPEN_API_TYPE = {
   },
 };
 
-type OpenApiType = typeof OPEN_API;
-type OpenApiKeyType = keyof OpenApiType;
-type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
-
-const getPath = (url: string, param: Record<string, any> = {}): string => {
-  let path = url;
-  for (let key in param) {
-    path = path.replace(new RegExp("\\{" + key + "\\}", "g"), param[key]);
-  }
-
-  return path;
-};
-
-type OpenApiInfoType = {
-  url: string;
-  name: string;
-};
-
 async function getOpenApiInfo<T extends OpenApiKeyType>(
   type: T,
   key: OpenApiSubKeyType<T>
@@ -75,37 +53,11 @@ async function getOpenApiInfo<T extends OpenApiKeyType>(
   }
 }
 
-type RootDataType = number;
-
-type RecordType = {
-  oids: string;
-  time: number;
-  classHash: number;
-  count: number;
-  service: string;
-  class: string;
-  serviceHash: number;
-  snapSeq: string;
-  msg: string;
-};
-type JsonDataType = {
-  records: RecordType[];
-  total: number;
-  retrievedTotal?: number;
-};
-
-// fetch 해서 받아온 데이터의 타입을 정의
-type ResponseType<T extends OpenApiKeyType> = {
-  key: keyof OPEN_API_TYPE[T];
-  name: string;
-  data: T extends RootDataType ? RootDataType : JsonDataType;
-};
-
 async function fetchOpenApi<T extends OpenApiKeyType>(
   type: T,
   key: OpenApiSubKeyType<T>,
   param?: Record<string, any>
-): Promise<ResponseType<T>> {
+): Promise<OpenApiResponseType<T>> {
   try {
     const { url, name }: OpenApiInfoType = await getOpenApiInfo(type, key);
     const data = await fetch(getPath(url, param), { headers: OPEN_API_HEADERS })
@@ -117,6 +69,9 @@ async function fetchOpenApi<T extends OpenApiKeyType>(
     throw new Error("Failed to fetch data from the Open API");
   }
 }
+
+const rootKey: OpenApiKeyType = "root";
+const jsonKey: OpenApiKeyType = "json";
 
 const spot = (
   key: OpenApiSubKeyType<typeof rootKey>,
