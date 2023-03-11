@@ -1,5 +1,6 @@
 import { getPath } from '../utils';
 import {
+  OpenApiDataType,
   OpenApiInfoType,
   OpenApiKeyType,
   OpenApiResponseType,
@@ -8,8 +9,6 @@ import {
   jsonKey,
   rootKey,
 } from './types';
-
-// .env -> 에 넣어서 다시 리팩토링할 예정
 
 // api header -> using .env vals
 const OPEN_API_HEADERS = {
@@ -49,11 +48,11 @@ const OPEN_API: OpenApiType = {
 // url, name 을 반환해주는 함수 -> 콜스택에 최대한 안쌓이게 하기 위해서 async 로 처리함
 async function getOpenApiInfo<T extends OpenApiKeyType>(type: T, key: OpenApiSubKeyType<T>): Promise<OpenApiInfoType> {
   if (key in OPEN_API[type]) {
-    const data = {
-      url: [import.meta.env.VITE_OPEN_API_ROOT, type, key].filter((path) => !!path).join('/'),
+    const info = {
+      url: [import.meta.env.VITE_OPEN_API_PREFIX, type, key].filter((path) => !!path).join('/'),
       name: OPEN_API[type][key],
     };
-    return data;
+    return info;
   } else {
     throw Error('Invalid type');
   }
@@ -67,13 +66,20 @@ async function fetchOpenApi<T extends OpenApiKeyType>(
   try {
     const { url, name }: OpenApiInfoType = await getOpenApiInfo(type, key);
     const data = await fetch(getPath(url, param), { headers: OPEN_API_HEADERS })
-      .then((res) => res.json())
-      .then((data) => ({ key, name, data }));
-
+      .then((res) => {
+        if (!res.ok) throw Error(res.statusText);
+        return res.json();
+      })
+      .then((data) => ({
+        key,
+        name,
+        data,
+      }));
     return data;
   } catch (error) {
-    console.error(error);
-    throw new Error('Failed to fetch data from the Open API');
+    // 여기서 에러 객체 반환
+    console.error('fetchOpenApi fails', error);
+    throw error;
   }
 }
 
