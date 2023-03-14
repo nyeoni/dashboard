@@ -10,7 +10,7 @@ import {
 } from '../api/types';
 import api from '../api/api';
 
-export function useSeries(key: OpenApiSubKeyType<typeof jsonKey>, param?: OpenApiParamType) {
+export const useSeries = (key: OpenApiSubKeyType<typeof jsonKey>, param?: OpenApiParamType) => {
   const [data, setData] = useState<OpenApiResponseType<jsonKeyType>>();
 
   useEffect(() => {
@@ -36,4 +36,4 @@ export function useSeries(key: OpenApiSubKeyType<typeof jsonKey>, param?: OpenAp
   }, [key, param]);
 
   return data;
-}
+};
