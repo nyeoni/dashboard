@@ -1,4 +1,3 @@
-import { getPath } from '../utils';
 import {
   OpenApiDataType,
   OpenApiInfoType,
@@ -45,6 +44,16 @@ const OPEN_API: OpenApiType = {
   },
 };
 
+// getPath url 관한 정보를 한번에 합쳐주는 함수
+const getPath = (url: string, param: Record<string, any> = {}): string => {
+  let path = url;
+  for (let key in param) {
+    path = path.replace(new RegExp('\\{' + key + '\\}', 'g'), param[key]);
+  }
+
+  return path;
+};
+
 // url, name 을 반환해주는 함수 -> 콜스택에 최대한 안쌓이게 하기 위해서 async 로 처리함
 async function getOpenApiInfo<T extends OpenApiKeyType>(type: T, key: OpenApiSubKeyType<T>): Promise<OpenApiInfoType> {
   if (key in OPEN_API[type]) {
@@ -78,7 +87,7 @@ async function fetchOpenApi<T extends OpenApiKeyType>(
     return data;
   } catch (error) {
     // 여기서 에러 객체 반환
-    console.error('fetchOpenApi fails', error);
+    // console.error('fetchOpenApi fails', error);
     throw error;
   }
 }

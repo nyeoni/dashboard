@@ -13,11 +13,14 @@ export type OpenApiType = {
 
 export type OpenApiKeyType = keyof OpenApiType;
 export type OpenApiSubKeyType<T extends OpenApiKeyType> = keyof OpenApiType[T];
+export type OpenApiParamType = {
+  [key: string]: any;
+};
 
 // open api response type
 // 1. root -> return number
 // 2. json -> return JsonDataType
-export type RootDataType = number;
+export type RootDataType = string;
 
 export type RecordType = {
   oids: string;
@@ -42,9 +45,20 @@ export type OpenApiInfoType = {
   name: string;
 };
 
+export type OpenApiDataType<T extends OpenApiKeyType> = {
+  data: T extends rootKeyType ? RootDataType : JsonDataType;
+};
+
 // fetch 해서 받아온 데이터의 타입을 정의
 export type OpenApiResponseType<T extends OpenApiKeyType> = {
   key: keyof OpenApiType[T];
   name: string;
-  data: T extends rootKeyType ? RootDataType : JsonDataType;
+  data: OpenApiDataType<T>;
 };
+
+export interface ApiError extends Error {
+  response?: {
+    status: number;
+    statusText: string;
+  };
+}
