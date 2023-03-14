@@ -16,10 +16,12 @@ const StyledHeader = styled.header`
   background-color: ${(props) => props.theme.colors.primaryVariant};
 `;
 
-export default function Header() {
+const Header = () => {
   return (
     <StyledHeader>
       <Logo />
     </StyledHeader>
   );
-}
+};
+
+export default Header;

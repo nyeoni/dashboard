@@ -1,34 +1,34 @@
 import styled from 'styled-components';
+import Col from './Col';
 
 interface PannelProps {
   children: JSX.Element | JSX.Element[] | string;
   title?: string;
 }
 
-export default function Pannel({ children, title, ...props }: PannelProps) {
+const Pannel = ({ children, title, ...props }: PannelProps) => {
   return (
-    <StyledContainer>
-      {title ? <StyledTitle>{title}</StyledTitle> : <></>}
+    <Container {...props}>
+      {title ? <Title>{title}</Title> : <></>}
       {children}
-    </StyledContainer>
+    </Container>
   );
-}
+};
 
-const StyledContainer = styled.div`
-  display: flex;
-  flex-direction: column;
+export default Pannel;
 
+const Container = styled(Col)`
   background: rgba(255, 255, 255, 0.1);
   border-radius: 8px;
 
   padding: 20px;
-  color: ${(props) => props.theme.colors.onPrimaryVariant};
 `;
 
-const StyledTitle = styled.div`
+const Title = styled.div`
   display: flex;
 
   padding-bottom: 20px;
-  font-size: 14px;
-  color: ${(props) => props.theme.colors.onPrimary};
+  font-size: 16px;
+  font-weight: bold;
+  color: ${(props) => props.theme.colors.onPrimaryVariant};
 `;
