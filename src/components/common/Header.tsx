@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { ReactComponent as Logo } from '../../public/logo_header.svg';
+import { ReactComponent as Logo } from '../../img/logo_header.svg';
 
 const StyledHeader = styled.header`
   width: 100%;
@@ -11,9 +11,9 @@ const StyledHeader = styled.header`
   position: sticky;
   top: 0;
   z-index: 999;
-  padding: 0 16px;
+  padding: 0 20px;
 
-  background-color: ${(props) => props.theme.colors.header};
+  background-color: ${(props) => props.theme.colors.primaryVariant};
 `;
 
 export default function Header() {
