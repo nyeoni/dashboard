@@ -55,7 +55,35 @@ export type OpenApiResponseType<T extends OpenApiKeyType> = {
 - 10개 이상의 `api` 사용
 - 5초 주기로 데이터 갱신
 
-그래서 10개 이상의 `api` 를 호출할때 `key` 만 주면 편하게 5초 주기로 데이터를 갱신해주는 `useApiPolling` hook 을 만들기로 결정하였다.
+그래서 10개 이상의 `api` 를 호출할때 `key` 만 주면 편하게 5초 주기로 데이터를 갱신해주는 `useSpot`, `useSeries` hook 을 만들기로 결정하였다.
+
+<img src="./asset/apipolling.png" >
+
+### HTTP 429 error 처리하기
+
+- HTTP 429 Too Many Requests Error 란?
+  서버에서 유저가 단시간에 너무 많은 요청을 하려고 하면 `rate-limit` 을 걸게 된다.
+
+- 먼저 /open/api/act\_\*\* 과 같은 api 가 데이터 갱신이 안되더라도 전체 페이지 렌더링이 일어나는 것을 확인할 수 있음
+
+### API call 수 조절하기 위한 아이디어
+
+먼저 한 컴포넌트에서 만든 `useSpot` 이나 `useSeries` 를 쓸 경우 아래의 사진처럼 5초 주기로 api 가 전체 fetching 되는 것을 확인 할 수 있다.
+<img src="./asset/datafetchnetwork.png" >
+
+1. cache
+
+- react-query or swr 사용할 때 캐시 작동되는 동작원리
+
+2. debounce / throttling
+
+3. token bucket algorithm
+
+- throttling (rate limit)
+
+4. lazy loading
+
+If your dashboard has components that make API calls for data that may not be needed immediately, consider using lazy loading to defer the API calls until the data is actually needed. This can help reduce the number of API calls made on the initial page load.
 
 ### Dashboard 구성
 
@@ -130,3 +158,9 @@ https://kamang-it.tistory.com/entry/WebPerformanceChrome-%EC%9B%B9-%ED%94%84%EB%
 
 - 429 에러 api 호출이 너무 많아서 발생하는 에러
 - 429 에러가 발생하지 않게 구현하기
+
+### 궁금했던 점
+
+- server 의 max-rate-limit 이 알 수 있는 방법
+
+- 비동기로 처리하는 것이 좋은 기준 정하기
